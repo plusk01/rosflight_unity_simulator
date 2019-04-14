@@ -38,8 +38,10 @@ public class Multirotor : MonoBehaviour {
     void FixedUpdate()
     {
         Vector3 accel, gyro;
-        double timestamp = imu.GetMeasurement(out accel, out gyro);
+        long timestampTicks = imu.GetMeasurement(out accel, out gyro);
 
-        comms.SendIMU(timestamp, accel, gyro);
+        // Not only does this send IMU data, but it also acts as an indication
+        // that a new physics update has occurred.
+        comms.SendIMU(timestampTicks, accel, gyro);
     }
 }

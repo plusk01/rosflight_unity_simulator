@@ -19,9 +19,9 @@ public class SimCom : MonoBehaviour {
 
     // ------------------------------------------------------------------------
 
-    public bool SendIMU(double timestamp, Vector3 accel, Vector3 gyro)
+    public bool SendIMU(long timestampTicks, Vector3 accel, Vector3 gyro)
     {
-        byte[] imuRaw = PackIMU(timestamp, accel, gyro);
+        byte[] imuRaw = PackIMU(timestampTicks, accel, gyro);
 
         socket.Send(imuRaw, imuRaw.Length, simEP);
         return true;
@@ -48,12 +48,16 @@ public class SimCom : MonoBehaviour {
 
     // ------------------------------------------------------------------------
 
-    byte[] PackIMU(double timestamp, Vector3 accel, Vector3 gyro)
+    byte[] PackIMU(long timestampTicks, Vector3 accel, Vector3 gyro)
     {
-        byte[] bytes = new byte[sizeof(double) + 3*sizeof(float) + 3*sizeof(float)];
+        int secs, nsecs;
+        TicksToTime(timestampTicks, out secs, out nsecs);
+
+        byte[] bytes = new byte[2*sizeof(int) + 3*sizeof(float) + 3*sizeof(float)];
 
         int offset = 0;
-        Buffer.BlockCopy(BitConverter.GetBytes(timestamp), 0, bytes, offset, sizeof(double)); offset += sizeof(double);
+        Buffer.BlockCopy(BitConverter.GetBytes(secs), 0, bytes, offset, sizeof(int)); offset += sizeof(int);
+        Buffer.BlockCopy(BitConverter.GetBytes(nsecs), 0, bytes, offset, sizeof(int)); offset += sizeof(int);
         Buffer.BlockCopy(BitConverter.GetBytes(accel.x), 0, bytes, offset, sizeof(float)); offset += sizeof(float);
         Buffer.BlockCopy(BitConverter.GetBytes(accel.y), 0, bytes, offset, sizeof(float)); offset += sizeof(float);
         Buffer.BlockCopy(BitConverter.GetBytes(accel.z), 0, bytes, offset, sizeof(float)); offset += sizeof(float);
@@ -62,5 +66,16 @@ public class SimCom : MonoBehaviour {
         Buffer.BlockCopy(BitConverter.GetBytes(gyro.z), 0, bytes, offset, sizeof(float)); offset += sizeof(float);
 
         return bytes;
+    }
+
+    // ------------------------------------------------------------------------
+
+    void TicksToTime(long ticks, out int secs, out int nsecs)
+    {
+        // In C#, 1 tick == 100 ns (https://stackoverflow.com/a/386356/2392520)
+        double s = TimeSpan.FromTicks(ticks).TotalSeconds;
+
+        secs = (int) Math.Truncate(s);
+        nsecs = (int) (Math.Truncate((s-secs)*1e7)*1e2);
     }
 }

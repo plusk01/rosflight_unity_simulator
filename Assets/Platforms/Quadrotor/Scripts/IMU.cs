@@ -13,7 +13,7 @@ public class IMU : MonoBehaviour {
 
     // ------------------------------------------------------------------------
 
-    public double GetMeasurement(out Vector3 accel, out Vector3 gyro)
+    public long GetMeasurement(out Vector3 accel, out Vector3 gyro)
     {
         // Estimate the instantaneous acceleration
         Vector3 a = (rb.velocity - lastVelocity) / Time.deltaTime;
@@ -30,24 +30,17 @@ public class IMU : MonoBehaviour {
         accel = accel_body;
         gyro = angvel_body;
 
-        // stamp this measurement
-        return GetTimeNow();
+        // stamp this measurement with number of ticks since UNIX epoch.
+        return DateTime.UtcNow.Subtract(new DateTime(1970, 1, 1)).Ticks;
     }
 
     // ------------------------------------------------------------------------
     // Private Methods
     // ------------------------------------------------------------------------
     
-    void Start () {
+    void Start() {
         // grab a reference to the first rigid body above me
         rb = GetComponentInParent<Rigidbody>();
-    }
-
-    // ------------------------------------------------------------------------
-
-    double GetTimeNow()
-    {
-        return DateTime.UtcNow.Subtract(new DateTime(1970, 1, 1)).TotalSeconds;
     }
 
 }
