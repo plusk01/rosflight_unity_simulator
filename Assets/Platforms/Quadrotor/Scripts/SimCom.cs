@@ -3,19 +3,37 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Net;
 using System.Net.Sockets;
+using System.Threading;
 using UnityEngine;
 
 public class SimCom : MonoBehaviour {
 
-    [HeaderAttribute("External Address")]
-    public string ipAddress = "127.0.0.1";
-    public int port = 2908;
+    [HeaderAttribute("Remote Host")]
+    public string remoteIP = "127.0.0.1";
+    public int remotePort = 2908;
 
-    // UDP socket for send / receive to ROS bridge
+    [HeaderAttribute("Bind Host")]
+    public string bindIP = "127.0.0.1";
+    public int bindPort = 2908;
+
+    // UDP socket for send / receive to UnityBridge
     private UdpClient socket = new UdpClient();
 
-    // Endpoint (IP, port) that is the address to the external ROS bridge
-    private IPEndPoint simEP;
+    // Endpoint (IP, port) that is the address to the remote UnityBridge
+    private IPEndPoint remoteEP;
+
+    // Endpoint (IP, port) of the bind address (local)
+    private IPEndPoint bindEP;
+
+    // Thread for receiving data from UnityBridge
+    private Thread rxThread;
+
+    private enum Message : byte {
+        SimConfig = 0x00,
+        VehConfig = 0x01,
+        IMU = 0x02,
+        MotorCmd = 0x03
+    }
 
     // ------------------------------------------------------------------------
 
@@ -23,7 +41,7 @@ public class SimCom : MonoBehaviour {
     {
         byte[] imuRaw = PackIMU(timestampTicks, accel, gyro);
 
-        socket.Send(imuRaw, imuRaw.Length, simEP);
+        socket.Send(imuRaw, imuRaw.Length, remoteEP);
         return true;
     }
 
@@ -34,8 +52,14 @@ public class SimCom : MonoBehaviour {
     // Use this for initialization
     void Start()
     {
-        // "Bind" to endpoint
-        simEP = new IPEndPoint(IPAddress.Parse(ipAddress), port);
+        // Create endpoints
+        bindEP = new IPEndPoint(IPAddress.Parse(bindIP), bindPort);
+        remoteEP = new IPEndPoint(IPAddress.Parse(remoteIP), remotePort);
+
+        // Start rx thread
+        rxThread = new Thread(new ThreadStart(ReceiveData));
+        rxThread.IsBackground = true;
+        rxThread.Start();
     }
 
     // ------------------------------------------------------------------------
@@ -53,9 +77,10 @@ public class SimCom : MonoBehaviour {
         int secs, nsecs;
         TicksToTime(timestampTicks, out secs, out nsecs);
 
-        byte[] bytes = new byte[2*sizeof(int) + 3*sizeof(float) + 3*sizeof(float)];
+        byte[] bytes = new byte[1 + 2*sizeof(int) + 3*sizeof(float) + 3*sizeof(float)];
 
         int offset = 0;
+        bytes[0] = (byte)Message.IMU; offset += 1;
         Buffer.BlockCopy(BitConverter.GetBytes(secs), 0, bytes, offset, sizeof(int)); offset += sizeof(int);
         Buffer.BlockCopy(BitConverter.GetBytes(nsecs), 0, bytes, offset, sizeof(int)); offset += sizeof(int);
         Buffer.BlockCopy(BitConverter.GetBytes(accel.x), 0, bytes, offset, sizeof(float)); offset += sizeof(float);
@@ -66,6 +91,19 @@ public class SimCom : MonoBehaviour {
         Buffer.BlockCopy(BitConverter.GetBytes(gyro.z), 0, bytes, offset, sizeof(float)); offset += sizeof(float);
 
         return bytes;
+    }
+
+    // ------------------------------------------------------------------------
+
+    void ReceiveData()
+    {
+        while (true) {
+            // wait for a packet to be received (blocking)
+            byte[] buffer = socket.Receive(ref bindEP);
+
+
+
+        }
     }
 
     // ------------------------------------------------------------------------
