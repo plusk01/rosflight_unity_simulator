@@ -14,10 +14,10 @@ public class SimCom : MonoBehaviour {
 
     [HeaderAttribute("Bind Host")]
     public string bindIP = "127.0.0.1";
-    public int bindPort = 2908;
+    public int bindPort = 2909;
 
     // UDP socket for send / receive to UnityBridge
-    private UdpClient socket = new UdpClient();
+    private UdpClient socket;
 
     // Endpoint (IP, port) that is the address to the remote UnityBridge
     private IPEndPoint remoteEP;
@@ -55,6 +55,9 @@ public class SimCom : MonoBehaviour {
         // Create endpoints
         bindEP = new IPEndPoint(IPAddress.Parse(bindIP), bindPort);
         remoteEP = new IPEndPoint(IPAddress.Parse(remoteIP), remotePort);
+
+        // Bind UDP socket to local endpoint
+        socket = new UdpClient(bindEP);
 
         // Start rx thread
         rxThread = new Thread(new ThreadStart(ReceiveData));
@@ -98,10 +101,21 @@ public class SimCom : MonoBehaviour {
     void ReceiveData()
     {
         while (true) {
+            // This will be filled with the address of where the data came from
+            IPEndPoint senderEP = new IPEndPoint(IPAddress.Any, 0);
+
             // wait for a packet to be received (blocking)
-            byte[] buffer = socket.Receive(ref bindEP);
+            byte[] buffer = socket.Receive(ref senderEP);
 
-
+            switch (buffer[0]) {
+                case (byte)Message.SimConfig:
+                    break;
+                case (byte)Message.VehConfig:
+                    break;
+                case (byte)Message.MotorCmd:
+                    break;
+                default: break; // unrecognized msg type
+            }
 
         }
     }
