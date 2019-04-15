@@ -49,9 +49,8 @@ public class Multirotor : MonoBehaviour {
 
     void OnMotorCmd(float[] motors)
     {
-        Debug.Log("Received " + motors.Length + " motor cmds: ");
         for (int i=0; i<motors.Length; ++i) {
-            Debug.Log(motors[i]);
+            propellers[i].SetMotorPWM(motors[i]);
         }
     }
 }
