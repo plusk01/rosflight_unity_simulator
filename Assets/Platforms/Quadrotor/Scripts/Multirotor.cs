@@ -22,7 +22,7 @@ public class Multirotor : MonoBehaviour {
     // Use this for initialization
     void Start()
     {
-        
+        comms.OnMotorCmd += new SimCom.MotorCmdHandler(OnMotorCmd);
     }
 
     // ------------------------------------------------------------------------
@@ -43,5 +43,15 @@ public class Multirotor : MonoBehaviour {
         // Not only does this send IMU data, but it also acts as an indication
         // that a new physics update has occurred.
         comms.SendIMU(timestampTicks, accel, gyro);
+    }
+
+    // ------------------------------------------------------------------------
+
+    void OnMotorCmd(float[] motors)
+    {
+        Debug.Log("Received " + motors.Length + " motor cmds: ");
+        for (int i=0; i<motors.Length; ++i) {
+            Debug.Log(motors[i]);
+        }
     }
 }

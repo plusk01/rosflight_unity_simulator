@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Linq;
 using System.Collections;
 using System.Collections.Generic;
 using System.Net;
@@ -7,6 +8,9 @@ using System.Threading;
 using UnityEngine;
 
 public class SimCom : MonoBehaviour {
+
+    public delegate void MotorCmdHandler(float[] motors);
+    public event MotorCmdHandler OnMotorCmd;
 
     [HeaderAttribute("Remote Host")]
     public string remoteIP = "127.0.0.1";
@@ -107,12 +111,16 @@ public class SimCom : MonoBehaviour {
             // wait for a packet to be received (blocking)
             byte[] buffer = socket.Receive(ref senderEP);
 
+            // The first byte is the msg type
+            byte[] data = buffer.Skip(1).ToArray();
+
             switch (buffer[0]) {
                 case (byte)Message.SimConfig:
                     break;
                 case (byte)Message.VehConfig:
                     break;
                 case (byte)Message.MotorCmd:
+                    ParseMotorCmd(data);
                     break;
                 default: break; // unrecognized msg type
             }
@@ -129,5 +137,20 @@ public class SimCom : MonoBehaviour {
 
         secs = (int) Math.Truncate(s);
         nsecs = (int) (Math.Truncate((s-secs)*1e7)*1e2);
+    }
+
+    // ------------------------------------------------------------------------
+
+    void ParseMotorCmd(byte[] data)
+    {
+        // Calculate the number of motor commands that were sent
+        int numMotors = data.Length / sizeof(float);
+        float[] motors = new float[numMotors];
+
+        for (int i=0; i<numMotors; ++i) {
+            motors[i] = BitConverter.ToSingle(data, i*sizeof(float));
+        }
+
+        OnMotorCmd(motors);
     }
 }
