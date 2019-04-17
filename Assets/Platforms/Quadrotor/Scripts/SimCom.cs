@@ -9,7 +9,7 @@ using UnityEngine;
 
 public class SimCom : MonoBehaviour {
 
-    public delegate void MotorCmdHandler(float[] motors);
+    public delegate void MotorCmdHandler(int channel, float value);
     public event MotorCmdHandler OnMotorCmd;
 
     [HeaderAttribute("Remote Host")]
@@ -143,14 +143,11 @@ public class SimCom : MonoBehaviour {
 
     void ParseMotorCmd(byte[] data)
     {
-        // Calculate the number of motor commands that were sent
-        int numMotors = data.Length / sizeof(float);
-        float[] motors = new float[numMotors];
+        // which motor is this command for?
+        int channel = (int)data[0];
 
-        for (int i=0; i<numMotors; ++i) {
-            motors[i] = BitConverter.ToSingle(data, i*sizeof(float));
-        }
+        float value = BitConverter.ToSingle(data, 1);
 
-        OnMotorCmd(motors);
+        OnMotorCmd(channel, value);
     }
 }

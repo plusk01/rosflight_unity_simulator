@@ -47,10 +47,10 @@ public class Multirotor : MonoBehaviour {
 
     // ------------------------------------------------------------------------
 
-    void OnMotorCmd(float[] motors)
+    void OnMotorCmd(int channel, float value)
     {
-        for (int i=0; i<motors.Length; ++i) {
-            propellers[i].SetMotorPWM(motors[i]);
+        if (channel < propellers.Length) {
+            propellers[channel].SetMotorPWM(value);
         }
     }
 }
