@@ -431,7 +431,7 @@ MonoBehaviour:
   clockwise: 0
   maxThrust: 12.95
   maxTorque: 1
-  rotationMultiplier: 500
+  rotationMultiplier: 3000
 --- !u!1 &632061779
 GameObject:
   m_ObjectHideFlags: 0
@@ -564,7 +564,7 @@ Rigidbody:
   m_GameObject: {fileID: 718036783}
   serializedVersion: 2
   m_Mass: 1.4
-  m_Drag: 0
+  m_Drag: 0.3
   m_AngularDrag: 0
   m_UseGravity: 1
   m_IsKinematic: 0
@@ -745,7 +745,7 @@ MonoBehaviour:
   clockwise: 1
   maxThrust: 12.95
   maxTorque: 1
-  rotationMultiplier: 500
+  rotationMultiplier: 3000
 --- !u!1001 &1169187604
 Prefab:
   m_ObjectHideFlags: 0
@@ -876,7 +876,7 @@ MonoBehaviour:
   clockwise: 1
   maxThrust: 12.95
   maxTorque: 1
-  rotationMultiplier: 500
+  rotationMultiplier: 3000
 --- !u!1 &1274717439 stripped
 GameObject:
   m_CorrespondingSourceObject: {fileID: 100000, guid: a79ce3efdf1d44ddeb765033d2e0d082,
@@ -1012,7 +1012,7 @@ MonoBehaviour:
   clockwise: 0
   maxThrust: 12.95
   maxTorque: 1
-  rotationMultiplier: 500
+  rotationMultiplier: 3000
 --- !u!1 &1966026658
 GameObject:
   m_ObjectHideFlags: 0

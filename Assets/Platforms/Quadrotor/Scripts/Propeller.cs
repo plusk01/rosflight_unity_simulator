@@ -40,7 +40,7 @@ public class Propeller : MonoBehaviour {
     // Update is called once per frame
     void Update() {
         int dir = GetRotationDirection();
-        transform.Rotate(Vector3.up, dir * rotationMultiplier * Time.deltaTime);
+        transform.Rotate(Vector3.up, pwm * dir * rotationMultiplier * Time.deltaTime);
 
         Debug.DrawLine(transform.position, transform.position + transform.up * pwm, Color.white);
     }
