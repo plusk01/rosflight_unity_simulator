@@ -11,6 +11,7 @@ public class Multirotor : MonoBehaviour {
 
     [HeaderAttribute("Sensors")]
     public IMU imu;
+    public TruthSensor truth;
 
     [HeaderAttribute("Communications")]
     public SimCom comms;
@@ -37,8 +38,21 @@ public class Multirotor : MonoBehaviour {
 
     void FixedUpdate()
     {
+        //
+        // Ground Truth
+        //
+
+        Vector3 x, v;
+        Quaternion q;
+        long timestampTicks = truth.GetMeasurement(out x, out v, out q);
+        comms.SendTruth(timestampTicks, x, v, q);
+
+        //
+        // IMU
+        //
+
         Vector3 accel, gyro;
-        long timestampTicks = imu.GetMeasurement(out accel, out gyro);
+        timestampTicks = imu.GetMeasurement(out accel, out gyro);
 
         // Not only does this send IMU data, but it also acts as an indication
         // that a new physics update has occurred.

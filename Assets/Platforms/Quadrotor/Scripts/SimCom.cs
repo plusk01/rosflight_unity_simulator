@@ -36,7 +36,8 @@ public class SimCom : MonoBehaviour {
         SimConfig = 0x00,
         VehConfig = 0x01,
         IMU = 0x02,
-        MotorCmd = 0x03
+        MotorCmd = 0x03,
+        Truth = 0x04
     }
 
     // ------------------------------------------------------------------------
@@ -46,6 +47,16 @@ public class SimCom : MonoBehaviour {
         byte[] imuRaw = PackIMU(timestampTicks, accel, gyro);
 
         socket.Send(imuRaw, imuRaw.Length, remoteEP);
+        return true;
+    }
+
+    // ------------------------------------------------------------------------
+
+    public bool SendTruth(long timestampTicks, Vector3 x, Vector3 v, Quaternion q)
+    {
+        byte[] truthRaw = PackTruth(timestampTicks, x, v, q);
+
+        socket.Send(truthRaw, truthRaw.Length, remoteEP);
         return true;
     }
 
@@ -96,6 +107,33 @@ public class SimCom : MonoBehaviour {
         Buffer.BlockCopy(BitConverter.GetBytes(gyro.x), 0, bytes, offset, sizeof(float)); offset += sizeof(float);
         Buffer.BlockCopy(BitConverter.GetBytes(gyro.y), 0, bytes, offset, sizeof(float)); offset += sizeof(float);
         Buffer.BlockCopy(BitConverter.GetBytes(gyro.z), 0, bytes, offset, sizeof(float)); offset += sizeof(float);
+
+        return bytes;
+    }
+
+    // ------------------------------------------------------------------------
+
+    byte[] PackTruth(long timestampTicks, Vector3 x, Vector3 v, Quaternion q)
+    {
+        int secs, nsecs;
+        TicksToTime(timestampTicks, out secs, out nsecs);
+
+        byte[] bytes = new byte[1 + 2*sizeof(int) + 3*sizeof(float) + 3*sizeof(float) + 4*sizeof(float)];
+
+        int offset = 0;
+        bytes[0] = (byte)Message.Truth; offset += 1;
+        Buffer.BlockCopy(BitConverter.GetBytes(secs), 0, bytes, offset, sizeof(int)); offset += sizeof(int);
+        Buffer.BlockCopy(BitConverter.GetBytes(nsecs), 0, bytes, offset, sizeof(int)); offset += sizeof(int);
+        Buffer.BlockCopy(BitConverter.GetBytes(x.x), 0, bytes, offset, sizeof(float)); offset += sizeof(float);
+        Buffer.BlockCopy(BitConverter.GetBytes(x.y), 0, bytes, offset, sizeof(float)); offset += sizeof(float);
+        Buffer.BlockCopy(BitConverter.GetBytes(x.z), 0, bytes, offset, sizeof(float)); offset += sizeof(float);
+        Buffer.BlockCopy(BitConverter.GetBytes(v.x), 0, bytes, offset, sizeof(float)); offset += sizeof(float);
+        Buffer.BlockCopy(BitConverter.GetBytes(v.y), 0, bytes, offset, sizeof(float)); offset += sizeof(float);
+        Buffer.BlockCopy(BitConverter.GetBytes(v.z), 0, bytes, offset, sizeof(float)); offset += sizeof(float);
+        Buffer.BlockCopy(BitConverter.GetBytes(q.w), 0, bytes, offset, sizeof(float)); offset += sizeof(float);
+        Buffer.BlockCopy(BitConverter.GetBytes(q.x), 0, bytes, offset, sizeof(float)); offset += sizeof(float);
+        Buffer.BlockCopy(BitConverter.GetBytes(q.y), 0, bytes, offset, sizeof(float)); offset += sizeof(float);
+        Buffer.BlockCopy(BitConverter.GetBytes(q.z), 0, bytes, offset, sizeof(float)); offset += sizeof(float);
 
         return bytes;
     }
